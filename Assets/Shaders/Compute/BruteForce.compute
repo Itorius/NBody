@@ -1,0 +1,24 @@
+﻿#pragma kernel CSGravityKernel
+
+#define thread_group_size_x 64
+#define thread_group_size_y 1
+#define thread_group_size_z 1
+
+RWStructuredBuffer<float4> positionBuffer;
+RWStructuredBuffer<float4> velocityBuffer;
+
+float _Time;
+
+[numthreads(thread_group_size_x, thread_group_size_y, thread_group_size_z)]
+void CSGravityKernel(uint3 id : SV_DispatchThreadID)
+{
+	uint size, stride;
+	positionBuffer.GetDimensions(size, stride);
+
+	for (int i = 0; i < size; i++)
+	{
+		if (id.x == i) continue;
+
+
+	}
+}
