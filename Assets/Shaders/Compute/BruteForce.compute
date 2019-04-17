@@ -18,7 +18,10 @@ void CSGravityKernel(uint3 id : SV_DispatchThreadID)
 	for (int i = 0; i < size; i++)
 	{
 		if (id.x == i) continue;
+		
+		if (distance(positionBuffer[id.x], positionBuffer[i]) > 10) continue;
 
-
+		float4 vec = positionBuffer[id.x] - positionBuffer[i];
+		positionBuffer[id.x] += vec * 0.00001;
 	}
 }

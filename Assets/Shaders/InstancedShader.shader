@@ -4,6 +4,8 @@ Shader "NBody/InstancedShader"
 		_MainTex("Albedo (RGB)", 2D) = "white" {}
 		_Glossiness("Smoothness", Range(0,1)) = 0.5
 		_Metallic("Metallic", Range(0,1)) = 0.0
+		_EmissionMap("Emission Map", 2D) = "black" {}
+		[HDR] _EmissionColor("Emission Color", Color) = (0,0,0)
 	}
 		SubShader{
 		Tags{ "RenderType" = "Opaque" }
@@ -15,6 +17,7 @@ Shader "NBody/InstancedShader"
 		#pragma instancing_options procedural:setup
 
 		sampler2D _MainTex;
+		sampler2D _EmissionMap;
 
 		struct Input {
 			float2 uv_MainTex;
@@ -43,22 +46,25 @@ Shader "NBody/InstancedShader"
 
 	half _Glossiness;
 	half _Metallic;
+	float4 _EmissionColor;
 
 	void surf(Input IN, inout SurfaceOutputStandard o) 
 	{
-		float4 col = 1.0f;
+		float4 col = 1;
 
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 		col = colorBuffer[unity_InstanceID];
 #else
 		col = float4(0, 0, 1, 1);
 #endif
+
 		fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * col;
 		o.Albedo = c.rgb;
 		o.Metallic = _Metallic;
 		o.Smoothness = _Glossiness;
 		o.Alpha = c.a;
-		o.Emission = c.rgb * 5;
+		//o.Emission = tex2D(_EmissionMap, IN.uv_MainTex).rgb * _EmissionColor.rgb;
+		o.Emission = tex2D(_EmissionMap, IN.uv_MainTex).rgb * _EmissionColor.rgb;
 	}
 	ENDCG
 	}
