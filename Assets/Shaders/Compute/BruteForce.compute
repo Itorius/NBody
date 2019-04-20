@@ -1,4 +1,5 @@
 ﻿#pragma kernel CSGravityKernel
+#pragma kernel CSVelocityKernel
 
 #define thread_group_size_x 64
 #define thread_group_size_y 1
@@ -8,20 +9,40 @@ RWStructuredBuffer<float4> positionBuffer;
 RWStructuredBuffer<float4> velocityBuffer;
 
 float _Time;
+float _Speed;
+
+#define G 6.67408e-11
 
 [numthreads(thread_group_size_x, thread_group_size_y, thread_group_size_z)]
 void CSGravityKernel(uint3 id : SV_DispatchThreadID)
 {
+	if (positionBuffer[id.x].w == 0) return;
+
 	uint size, stride;
 	positionBuffer.GetDimensions(size, stride);
 
 	for (int i = 0; i < size; i++)
 	{
-		if (id.x == i) continue;
+		if (id.x == i || positionBuffer[i].w == 0) continue;
 		
-		if (distance(positionBuffer[id.x], positionBuffer[i]) > 10) continue;
+		float d = distance(positionBuffer[id.x].xyz, positionBuffer[i].xyz);
 
-		float4 vec = positionBuffer[id.x] - positionBuffer[i];
-		positionBuffer[id.x] += vec * 0.00001;
+		if (d < 0.01)
+		{
+			positionBuffer[i].w += positionBuffer[id.x].w;
+			positionBuffer[id.x].w = 0;
+			
+			return;
+		}
+
+		float force = (G * positionBuffer[id.x].w * positionBuffer[i].w) / (d * d);
+
+		velocityBuffer[id.x].xyz += (force / positionBuffer[id.x].w) * normalize(positionBuffer[i].xyz - positionBuffer[id.x].xyz);
 	}
+}
+
+[numthreads(thread_group_size_x, thread_group_size_y, thread_group_size_z)]
+void CSVelocityKernel(uint3 id : SV_DispatchThreadID)
+{
+	positionBuffer[id.x].xyz += velocityBuffer[id.x].xyz * _Speed;
 }

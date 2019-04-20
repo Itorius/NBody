@@ -7,32 +7,35 @@ Shader "NBody/InstancedShader"
 		_EmissionMap("Emission Map", 2D) = "black" {}
 		[HDR] _EmissionColor("Emission Color", Color) = (0,0,0)
 	}
-		SubShader{
-		Tags{ "RenderType" = "Opaque" }
-		LOD 200
 
-		CGPROGRAM
-		#pragma surface surf Standard addshadow
-		#pragma multi_compile_instancing
-		#pragma instancing_options procedural:setup
+	SubShader{
+	Tags{ "RenderType" = "Opaque" }
+	LOD 600
 
-		sampler2D _MainTex;
-		sampler2D _EmissionMap;
+	CGPROGRAM
+	#pragma surface surf Standard addshadow
+	#pragma multi_compile_instancing
+	#pragma instancing_options procedural:setup
 
-		struct Input {
-			float2 uv_MainTex;
-		};
+	sampler2D _MainTex;
+	sampler2D _EmissionMap;
 
-		#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
-			StructuredBuffer<float4> positionBuffer;
-			StructuredBuffer<float4> colorBuffer;
-		#endif
+	struct Input {
+		float2 uv_MainTex;
+	};
+
+	#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+		StructuredBuffer<float4> positionBuffer;
+		StructuredBuffer<float4> colorBuffer;
+	#endif
 
 	void setup()
 	{
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 		float4 position = positionBuffer[unity_InstanceID];
-		float scale = position.w;
+		float scale = log10(position.w);
+
+		if (scale == 0) position.xyz = 1000;
 
 		unity_ObjectToWorld._11_21_31_41 = float4(scale, 0, 0, 0);
 		unity_ObjectToWorld._12_22_32_42 = float4(0, scale, 0, 0);
@@ -63,8 +66,11 @@ Shader "NBody/InstancedShader"
 		o.Metallic = _Metallic;
 		o.Smoothness = _Glossiness;
 		o.Alpha = c.a;
-		//o.Emission = tex2D(_EmissionMap, IN.uv_MainTex).rgb * _EmissionColor.rgb;
+#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
+		o.Emission = tex2D(_EmissionMap, IN.uv_MainTex).rgb * col.rgb;
+#else
 		o.Emission = tex2D(_EmissionMap, IN.uv_MainTex).rgb * _EmissionColor.rgb;
+#endif
 	}
 	ENDCG
 	}
