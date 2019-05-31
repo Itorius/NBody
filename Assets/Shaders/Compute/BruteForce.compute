@@ -8,7 +8,6 @@
 RWStructuredBuffer<float4> positionBuffer;
 RWStructuredBuffer<float4> velocityBuffer;
 
-float _Time;
 float _Speed;
 
 #define G 6.67408e-11

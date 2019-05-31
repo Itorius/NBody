@@ -3,9 +3,9 @@ using UnityEngine;
 
 namespace UnityTemplateProjects
 {
-	public class SimpleCameraController : MonoBehaviour
+	public class CameraController : MonoBehaviour
 	{
-		class CameraState
+		public class CameraState
 		{
 			public float yaw;
 			public float pitch;
@@ -51,8 +51,8 @@ namespace UnityTemplateProjects
 			}
 		}
 
-		CameraState m_TargetCameraState = new CameraState();
-		CameraState m_InterpolatingCameraState = new CameraState();
+		private CameraState m_TargetCameraState = new CameraState();
+		private CameraState m_InterpolatingCameraState = new CameraState();
 
 		[Header("Movement Settings"), Tooltip("Exponential boost factor on translation, controllable by mouse wheel.")]
 		public float boost = 3.5f;

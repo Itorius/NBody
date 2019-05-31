@@ -22,7 +22,7 @@ Shader "NBody/InstancedShader"
 
 	struct Input {
 		float2 uv_MainTex;
-	};
+	};	
 
 	#ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 		StructuredBuffer<float4> positionBuffer;
@@ -33,7 +33,10 @@ Shader "NBody/InstancedShader"
 	{
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 		float4 position = positionBuffer[unity_InstanceID];
-		float scale = log10(position.w);
+		float scale = position.w;
+
+		float4 color = colorBuffer[unity_InstanceID];
+		if (color.x == 0 && color.y == 0 && color.z == 0) scale = 0.01f;
 
 		if (scale == 0) position.xyz = 1000;
 

@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/BruteForceScene.unity
+    path: Assets/Scenes/Menu.unity
+    guid: 3a5e0c80c948d1f48b9d80b76eaa4d1c
+  - enabled: 1
+    path: Assets/Scenes/PureGPU.unity
     guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/Scenes/PureCPU.unity
+    guid: 1da87a2797c62ef4f9b36f91750754da
   m_configObjects: {}

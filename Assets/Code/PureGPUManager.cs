@@ -2,15 +2,10 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-public class ComputeManager : MonoBehaviour
+public class PureGPUManager : MonoBehaviour
 {
-	public int instanceCount;
-
 	public Mesh mesh;
 	public Material material;
-
-	public ShadowCastingMode castShadows = ShadowCastingMode.Off;
-	public bool receiveShadows;
 
 	public ComputeShader computeShader;
 
@@ -25,33 +20,42 @@ public class ComputeManager : MonoBehaviour
 	private ComputeBuffer argsBuffer;
 	private float speed = 1;
 
+	private const double G = 6.67408e-11f;
+
 	[GradientUsage(true)] public Gradient gradient;
 
 	private uint[] args = { 0, 0, 0, 0, 0 };
-
-	private const float G = 6.67408f * 0.00000000001f;
 
 	public void Start()
 	{
 		gravityKernelID = computeShader.FindKernel("CSGravityKernel");
 		velocityKernelID = computeShader.FindKernel("CSVelocityKernel");
 
-		positionBuffer = new ComputeBuffer(instanceCount, Marshal.SizeOf(typeof(Vector4)));
-		velocityBuffer = new ComputeBuffer(instanceCount, Marshal.SizeOf(typeof(Vector4)));
-		colorBuffer = new ComputeBuffer(instanceCount, Marshal.SizeOf(typeof(Vector4)));
+		int stride = Marshal.SizeOf<Vector4>();
+		positionBuffer = new ComputeBuffer(SceneManager.ParticleCount, stride);
+		Vector4[] positionData = new Vector4[SceneManager.ParticleCount];
 
-		Vector4[] positionData = new Vector4[instanceCount];
-		Vector4[] velocityData = new Vector4[instanceCount];
-		Vector4[] colorData = new Vector4[instanceCount];
+		velocityBuffer = new ComputeBuffer(SceneManager.ParticleCount, stride);
+		Vector4[] velocityData = new Vector4[SceneManager.ParticleCount];
 
-		for (int i = 0; i < instanceCount; i++)
+		colorBuffer = new ComputeBuffer(SceneManager.ParticleCount, stride);
+		Vector4[] colorData = new Vector4[SceneManager.ParticleCount];
+
+		positionData[0] = Vector3.zero;
+		positionData[0].w = 10000f;
+		colorData[0] = Color.black;
+
+		for (int i = 1; i < SceneManager.ParticleCount; i++)
 		{
-			positionData[i] = Random.insideUnitCircle * 5f;
-			positionData[i].w = Random.Range(0.5f, 1.5f);
+			positionData[i] = Random.insideUnitCircle * 100f;
+			positionData[i].w = SceneManager.Instance.sizeWeight.Evaluate((float)i / SceneManager.ParticleCount);
 
-			//velocityData[i] = Vector3.Normalize(Random.insideUnitCircle) * 0.00001f;
+			Vector3 vec = -(Vector3)positionData[i].normalized;
+			vec *= Mathf.Sqrt((float)(G * (positionData[0].w + positionData[i].w) / ((Vector3)positionData[i]).magnitude)) * 0.001f;
 
-			colorData[i] = gradient.Evaluate(1f - (positionData[i].w - 0.5f));
+			velocityData[i] = new Vector4(vec.y, -vec.x, 0, 0);
+
+			colorData[i] = gradient.Evaluate(1f - positionData[i].w);
 		}
 
 		positionBuffer.SetData(positionData);
@@ -60,35 +64,33 @@ public class ComputeManager : MonoBehaviour
 
 		material.SetBuffer("positionBuffer", positionBuffer);
 		material.SetBuffer("colorBuffer", colorBuffer);
-
-		mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 10000f);
-
+		
 		computeShader.SetBuffer(gravityKernelID, "positionBuffer", positionBuffer);
 		computeShader.SetBuffer(gravityKernelID, "velocityBuffer", velocityBuffer);
 
 		computeShader.SetBuffer(velocityKernelID, "positionBuffer", positionBuffer);
 		computeShader.SetBuffer(velocityKernelID, "velocityBuffer", velocityBuffer);
 
+		mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 10000f);
 		argsBuffer = new ComputeBuffer(5, sizeof(uint), ComputeBufferType.IndirectArguments);
 		args[0] = mesh != null ? mesh.GetIndexCount(0) : 0;
-		args[1] = (uint)instanceCount;
+		args[1] = (uint)SceneManager.ParticleCount;
 		argsBuffer.SetData(args);
-	}
+	}	
 
 	public void Update()
 	{
 		UpdateBuffers();
 
-		Graphics.DrawMeshInstancedIndirect(mesh, 0, material, mesh.bounds, argsBuffer, 0, null, castShadows, receiveShadows);
+		Graphics.DrawMeshInstancedIndirect(mesh, 0, material, mesh.bounds, argsBuffer, 0, null, ShadowCastingMode.Off, false);
 	}
 
 	public void UpdateBuffers()
 	{
-		computeShader.SetFloat("_Time", Time.deltaTime);
-		computeShader.SetFloat("_Speed", speed);
+		computeShader.SetFloat("_Speed", speed * 1000);
 
-		computeShader.Dispatch(gravityKernelID, instanceCount / 64, 1, 1);
-		computeShader.Dispatch(velocityKernelID, instanceCount / 64, 1, 1);
+		computeShader.Dispatch(gravityKernelID, Mathf.Clamp(SceneManager.ParticleCount / 64, 1, short.MaxValue), 1, 1);
+		computeShader.Dispatch(velocityKernelID, Mathf.Clamp(SceneManager.ParticleCount / 64, 1, short.MaxValue), 1, 1);
 	}
 
 	public void OnDisable()
