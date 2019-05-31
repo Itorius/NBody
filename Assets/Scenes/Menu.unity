@@ -655,26 +655,26 @@ MonoBehaviour:
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
-      time: 0.45935932
-      value: 0.09382041
-      inSlope: 0.2300548
-      outSlope: 0.2300548
+      time: 0.49905494
+      value: 0.06685942
+      inSlope: 0.08415916
+      outSlope: 0.08415916
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.12641904
-      outWeight: 0.11536843
+      outWeight: 0.12718822
     - serializedVersion: 3
       time: 0.9307391
       value: 0.26988918
-      inSlope: 1.2544738
-      outSlope: 1.2544738
+      inSlope: 1.2800125
+      outSlope: 1.2800125
       tangentMode: 0
       weightedMode: 0
       inWeight: 0.33333334
-      outWeight: 0.7211518
+      outWeight: 1
     - serializedVersion: 3
-      time: 1
-      value: 1
+      time: 1.0042725
+      value: 0.49887085
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -1558,10 +1558,10 @@ MonoBehaviour:
   m_FillRect: {fileID: 491467970}
   m_HandleRect: {fileID: 717322490}
   m_Direction: 0
-  m_MinValue: 100
-  m_MaxValue: 100000
+  m_MinValue: 128
+  m_MaxValue: 16384
   m_WholeNumbers: 1
-  m_Value: 100
+  m_Value: 128
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls:

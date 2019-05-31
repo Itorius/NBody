@@ -42,7 +42,7 @@ public class PureCPUManager : MonoBehaviour
 			positionData[i].w = SceneManager.Instance.sizeWeight.Evaluate((float)i / SceneManager.ParticleCount);
 
 			Vector3 vec = -(Vector3)positionData[i].normalized;
-			vec *= Mathf.Sqrt(G * (positionData[0].w + positionData[i].w) / ((Vector3)positionData[i]).magnitude) * 0.001f;
+			vec *= Mathf.Sqrt(G * (positionData[0].w + positionData[i].w) / ((Vector3)positionData[i]).magnitude) * 0.0001f;
 
 			velocityData[i] = new Vector4(vec.y, -vec.x, 0, 0);
 

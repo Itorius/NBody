@@ -33,7 +33,7 @@ Shader "NBody/InstancedShader"
 	{
 #ifdef UNITY_PROCEDURAL_INSTANCING_ENABLED
 		float4 position = positionBuffer[unity_InstanceID];
-		float scale = position.w;
+		float scale = position.w * 5;
 
 		float4 color = colorBuffer[unity_InstanceID];
 		if (color.x == 0 && color.y == 0 && color.z == 0) scale = 0.01f;
